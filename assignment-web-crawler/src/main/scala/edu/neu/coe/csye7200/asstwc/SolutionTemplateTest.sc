@@ -20,10 +20,15 @@ def wget(url: URL)(implicit ec: ExecutionContext): Future[Seq[URL]] = {
   // In the latter, use the method createURL(Option[URL], String) to get the appropriate URL for a relative link.
   // Don't forget to run it through validateURL.
   // 16 points.
-  def getURLs(ns: Node): Seq[Try[URL]] =
-// TO BE IMPLEMENTED 
- ???
-// END SOLUTION
+  def getURLs(ns: Node): Seq[Try[URL]] = {
+  val anchors = ns \\ "a"
+  val hrefs = anchors.flatMap(_.attribute("href").map(_.text)).filter(isValidURLString)
+  hrefs.map(href => for {
+    url <- createURL(Some(url), href)
+    validated <- validateURL(url)
+  } yield validated)
+}
+
 
   def getLinks(g: String): Try[Seq[URL]] = {
     val ny: Try[Node] = HTMLParser.parse(g) recoverWith { case f => Failure(new RuntimeException(s"parse problem with URL $url: $f")) }
@@ -32,9 +37,9 @@ def wget(url: URL)(implicit ec: ExecutionContext): Future[Seq[URL]] = {
   // Hint: write as a for-comprehension, using getURLContent (above) and getLinks above. You will also need FP.asFuture
   // 9 points.
 
-  // TO BE IMPLEMENTED 
-   ???
-  // END SOLUTION
+  def isValidURLString(w: String): Boolean =
+  !w.startsWith("tel:") && !w.startsWith("mailto:") && !w.contains("javascript")
+
 
   /**
    * Method to read the content of the given URL and return the result as a Future[String].

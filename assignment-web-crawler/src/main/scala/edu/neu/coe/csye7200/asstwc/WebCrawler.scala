@@ -1,6 +1,8 @@
 package edu.neu.coe.csye7200.asstwc
 
+
 import edu.neu.coe.csye7200.asstwc.WebCrawler.{canParse, createURL, fetchAndParseLinks}
+import edu.neu.coe.csye7200.asstwc.fp.FP
 import edu.neu.coe.csye7200.asstwc.fp.FP._
 import edu.neu.coe.csye7200.asstwc.fp.{Crawler, Timer}
 import java.net.{MalformedURLException, URL}
@@ -137,12 +139,11 @@ object WebCrawler extends App {
    * @return a Future containing a sequence of resolved and valid URLs extracted from the content of the input URL.
    */
   def fetchAndParseLinks(url: URL)(implicit ec: ExecutionContext): Future[Seq[URL]] =
-    // Hint: write as a for-comprehension, using getURLContent (above) and getLinks (below).
-    // You will also need FP.asFuture
-    // 9 points.
-    // TO BE IMPLEMENTED 
-     ???
-    // END SOLUTION
+  for {
+    content <- getURLContent(url)
+    urls <- FP.asFuture(getLinks(content, url))
+  } yield urls
+
 
   /**
    * Extracts and validates a list of URLs from the given HTML content string and a base URL.
@@ -171,10 +172,12 @@ object WebCrawler extends App {
    * @param url  the base `URL` used to resolve relative URLs found in the `href` attributes.
    * @return a sequence of `Try[URL]` objects, representing the valid URLs extracted and resolved from the node.
    */
-  def getURLs(node: Node, url: URL): Seq[Try[URL]] =
-// TO BE IMPLEMENTED 
- ???
-// END SOLUTION
+  def getURLs(node: Node, url: URL): Seq[Try[URL]] = {
+  val anchors = node \\ "a"
+  val hrefs = anchors.flatMap(_.attribute("href").map(_.text)).filter(isValidURLString)
+  hrefs.map(href => createRelURL(Some(url), href))
+}
+
 
   /**
    * Converts the content of a given BufferedSource to a String.

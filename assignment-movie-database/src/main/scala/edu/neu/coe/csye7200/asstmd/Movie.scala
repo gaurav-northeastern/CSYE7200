@@ -100,14 +100,18 @@ object Movie extends App {
      * @param w a line of input.
      * @return a Try[Movie]
      */
-    def parse(w: String): Try[Movie] = {
-// TO BE IMPLEMENTED 
-       Try(???)
-      // END
-    }
+   def parse(w: String): Try[Movie] = {
+  Try {
+    val ws = w.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)").map(_.trim.stripPrefix("\"").stripSuffix("\"")).toSeq
+    apply(ws)
+  }
+}
+
   }
 
-  val movies = doMain(args.head)
+  val filename = if (args.nonEmpty) args.head else "src/test/resources/movie_metadata.csv"
+val movies = doMain(filename)
+
   println(s"There are $movies Kiwi movies")
 
   private def doMain(filename: String): Int = {
@@ -115,7 +119,9 @@ object Movie extends App {
       lazy val ingester = new Ingest[Movie]()
       val source = Source.fromFile(filename)
       val triedMovies: Iterator[Try[Movie]] = for (my <- ingester(source)) yield for (m <- my; if m.production.isKiwi) yield m
-      val optionalMovies: Seq[Option[Movie]] = triedMovies to List map (_.toOption)
+      val optionalMovies = triedMovies.toList.map(_.toOption)
+
+
       val kiwiMovies: Option[Seq[Movie]] = sequenceOptimistic(optionalMovies)
       kiwiMovies foreach (_ foreach println)
       source.close()
@@ -135,11 +141,8 @@ object Movie extends App {
   def elements(list: Seq[String], indices: Int*): List[String] = {
     // Hint: form a new list which is consisted by the elements in list in position indices. Int* means array of Int.
     // 6 points
-    val result: Seq[String] = {
-      // TO BE IMPLEMENTED 
-       ???
-      // END
-    }
+    val result: Seq[String] = indices.flatMap(i => list.lift(i))
+
     result.toList
   }
 
@@ -259,9 +262,9 @@ object Rating {
   // Hint: This should be similar to the apply method in Object Name. The parameter of apply in case match should be same as case class Rating
   // 13 points
   def apply(s: String): Rating = s match {
-    case rRating("Unrated" | "Approved" | "Not Rated" | "" | "NULL" | null, _, _) => throw ParseException(s"parse error in Rating: $s")
-// TO BE IMPLEMENTED 
-// END
+    case rRating(code, _, age) if !Set("Unrated", "Approved", "Not Rated", "", "NULL", null).contains(code) =>
+  Rating(code, Option(age).map(_.toInt))
+
     case _ => throw ParseException(s"parse error in Rating: $s")
   }
 }

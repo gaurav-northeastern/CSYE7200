@@ -3,6 +3,7 @@ package edu.neu.coe.csye7200.asstmd
 import scala.io.Source
 import scala.util.Try
 
+
 /**
   * Class which will read a Source, line by line, and parse each line as a Try[T].
   * The first line is expected to be a header line and so is ignored.
